@@ -1,0 +1,7 @@
+.idea
+venv
+node*
+*.yaml
+key_file
+key_id
+kms.db
