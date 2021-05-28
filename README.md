@@ -1,65 +1,65 @@
-# operator
+# cita_cloud_operator
 
-将`cita-cloud`底层链运行在`Kubernetes`环境中，本项目实现一个`Operator`，用来在`k8s`集群中部署链的单个节点或者所有节点。将来还可以考虑集成软件版本升级，数据备份，增加/删除指定链的节点等运维操作。进一步还可以考虑集成配置生成，`SDK`网关，缓存服务，`Watch Tower`，甚至是合约`IDE`，合约编译服务等。
+创建部署到`k8s`集群的`yaml`文件。
 
-## `Operator`
+### 依赖
 
-`CRD`是`Kubernetes`为提高可扩展性，让开发者去自定义资源（如`Deployment`，`StatefulSet`等）的一种方法。
+* python 3
 
-`CRD`仅仅是资源的定义，而`Controller`可以去监听`CRD`的`CRUD`事件来添加自定义业务逻辑。
+安装依赖包:
 
-`Operator`=`CRD`+`Controller`。
+```
+pip install -r requirements.txt
+```
 
-## `kubebuilder`
+### 用法
 
-`kubebuilder`是一种工具，可以生成一个`Operator`工程以及相关的脚手架代码。
+```
+$ ./cita_cloud_operator.py -h
+usage: cita_cloud_operator.py [-h] [--work_dir WORK_DIR] [--chain_name CHAIN_NAME] [--service_config SERVICE_CONFIG]
+                              [--kms_passwords KMS_PASSWORDS] [--lbs_tokens LBS_TOKENS] [--node_ports NODE_PORTS]
+                              [--pvc_names PVC_NAMES] [--need_debug NEED_DEBUG] [--need_monitor NEED_MONITOR]
+                              [--state_db_user STATE_DB_USER] [--state_db_password STATE_DB_PASSWORD]
 
-本项目使用`kubebuilder`生成最基础的工程文件。
+optional arguments:
+  -h, --help            show this help message and exit
+  --work_dir WORK_DIR   The output director of config files.
+  --chain_name CHAIN_NAME
+                        The name of chain.
+  --service_config SERVICE_CONFIG
+                        Config file about service information.
+  --kms_passwords KMS_PASSWORDS
+                        Password list of kms.
+  --lbs_tokens LBS_TOKENS
+                        The token list of LBS.
+  --node_ports NODE_PORTS
+                        The list of start port of Nodeport.
+  --pvc_names PVC_NAMES
+                        The list of persistentVolumeClaim names.
+  --need_debug NEED_DEBUG
+                        Is need debug container
+  --need_monitor NEED_MONITOR
+                        Is need monitor
+  --state_db_user STATE_DB_USER
+                        User of state db.
+  --state_db_password STATE_DB_PASSWORD
+                        Password of state db.
+```
 
-相关文档参见：[英文](https://book.kubebuilder.io/quick-start.html)  [中文](https://blog.upweto.top/gitbooks/kubebuilder/)
+### 例子
 
-## 设计
+```
+./cita_cloud_operator.py --lbs_tokens lb-bp12,lb-bp34,lb-bp56,lb-bp78 --kms_passwords 123456,123456,123456,123456 --node_ports 30000,30010,30020,30030 --pvc_names nas-pvc,nas-pvc,nas-pvc,nas-pvc --need_debug true
+args: Namespace(work_dir='.', chain_name='test-chain', service_config='./service-config.toml', kms_passwords='123456,123456,123456,123456', lbs_tokens='lb-bp12,lb-bp34,lb-bp56,lb-bp78', node_ports='30000,30010,30020,30030', pvc_names='nas-pvc,nas-pvc,nas-pvc,nas-pvc', need_debug=True, need_monitor=False, state_db_user='citacloud', state_db_password='citacloud')
+service_config: {'services': [{'name': 'network', 'docker_image': 'citacloud/network_p2p', 'cmd': 'network run -p 50000 -k /network/network-key'}, {'name': 'consensus', 'docker_image': 'citacloud/consensus_bft', 'cmd': 'consensus run -p 50001'}, {'name': 'executor', 'docker_image': 'citacloud/executor_evm', 'cmd': 'executor run -p 50002'}, {'name': 'storage', 'docker_image': 'citacloud/storage_rocksdb', 'cmd': 'storage run -p 50003'}, {'name': 'controller', 'docker_image': 'citacloud/controller', 'cmd': 'controller run -p 50004'}, {'name': 'kms', 'docker_image': 'citacloud/kms_sm', 'cmd': 'kms run -p 50005 -k /kms/key_file'}]}
+yaml_ptah:{} /path/to/operator/test-chain-0.yaml
+yaml_ptah:{} /path/to/operator/test-chain-1.yaml
+yaml_ptah:{} /path/to/operator/test-chain-2.yaml
+yaml_ptah:{} /path/to/operator/test-chain-3.yaml
+Done!!!
+```
 
-1. 每个微服务一个pod，端口固定，相互之间用域名访问。`KMS`单独部署并且可以多实例，但是是`stateful`的。
-2. 网路端口和`Controller`的`RPC`服务要暴露出来，需要外部`ip`。
-3. 存储和`KMS`微服务需要`PV`。
-4. `KMS`需要保存密码。
+注意：
 
-## 步骤
-
-1. 生成脚手架工程
-
-   ```shell
-   go mod init github.com/cita-cloud/operator
-   kubebuilder init --domain citahub.com
-   ```
-
-   注意：生成的`Makefile`中需要用到`kustomize`命令，但是对于`Kubernetes 1.18`版本来说，这个命令已经集成进`kubectl`了。需要修改`Makefile`，将`kustomize build`替换为`kubectl kustomize` 。
-
-2. 创建`API`
-
-   ```shell
-   kubebuilder create api --group cita-cloud --version v1 --kind SingleNode
-   kubebuilder create api --group cita-cloud --version v1 --kind Cluster
-   kubebuilder create api --group cita-cloud --version v1 --kind KMS
-   ```
-
-3. 定义`CRD`
-
-   指定链的名字，`chain id`，节点列表，各个微服务的镜像，系统配置等信息。
-
-4. 编写`Controller`逻辑
-
-   调用`config-tool`生成链的配置。然后创建运行各个微服务的`Pod`，导出服务的`Service`，以及保存数据的`PV`等等。
-
-5. 测试发布
-
-   测试使用`minikube`在本机搭建`Kubernetes`环境。启动命令如下：
-
-   ```shell
-   minikube start --registry-mirror=https://xxx.mirror.aliyuncs.com --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --vm-driver=docker --alsologtostderr -v=8 --base-image registry.cn-hangzhou.aliyuncs.com/google_containers/kicbase:v0.0.10
-   ```
-
-   
-
-   
+1. `kms_passwords`,`lbs_tokens`,`node_ports`,`pvc_names` 四个参数的值均为数组，以逗号分割。值的数量都跟链的节点数保持一致，且按照节点序号排列，顺序不能乱。
+2. `kms_passwords`参数要和创建节点配置文件时的参数保持一致。
