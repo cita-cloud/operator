@@ -277,7 +277,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             'volumeMounts': [
                 {
                     'name': 'datadir',
-                    'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                    'subPath': get_node_pod_name(i, chain_name),
                     'mountPath': '/data',
                 }
             ],
@@ -302,7 +302,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
         'volumeMounts': [
             {
                 'name': 'datadir',
-                'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                'subPath': get_node_pod_name(i, chain_name),
                 'mountPath': '/var/syncthing',
             }
         ],
@@ -345,7 +345,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                     {
@@ -377,7 +377,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                 ],
@@ -404,7 +404,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                 ],
@@ -440,7 +440,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                         'volumeMounts': [
                             {
                                 'name': 'datadir',
-                                'subPath': 'cita-cloud/{}/node{}/state-data'.format(chain_name, i),
+                                'subPath': get_node_pod_name(i, chain_name),
                                 'mountPath': '/opt/couchdb/data',
                             },
                         ],
@@ -485,7 +485,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                 ],
@@ -512,7 +512,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                 ],
@@ -539,7 +539,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 'volumeMounts': [
                     {
                         'name': 'datadir',
-                        'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                        'subPath': get_node_pod_name(i, chain_name),
                         'mountPath': '/data',
                     },
                     {
@@ -576,7 +576,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             'volumeMounts': [
                 {
                     'name': 'datadir',
-                    'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                    'subPath': get_node_pod_name(i, chain_name),
                     'mountPath': '/data',
                 },
             ],
@@ -605,7 +605,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             'volumeMounts': [
                 {
                     'name': 'datadir',
-                    'subPath': 'cita-cloud/{}/node{}'.format(chain_name, i),
+                    'subPath': get_node_pod_name(i, chain_name),
                     'mountPath': '/data',
                 },
             ],
