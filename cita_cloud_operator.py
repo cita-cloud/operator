@@ -14,6 +14,7 @@ SYNCTHING_DOCKER_IMAGE = 'syncthing/syncthing:latest'
 
 DEBUG_DOCKER_IMAGE = 'praqma/network-multitool'
 
+# IfNotPresent or Always
 DEFAULT_IMAGEPULLPOLICY = 'Always'
 
 SERVICE_LIST = [

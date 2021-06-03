@@ -1,11 +1,11 @@
-[[services]]
-name = "network"
-docker_image = "citacloud/network_p2p"
-cmd = "network run -p 50000 -k /network/network-key"
 #[[services]]
 #name = "network"
-#docker_image = "citacloud/network_direct"
-#cmd = "network run -p 50000"
+#docker_image = "citacloud/network_p2p"
+#cmd = "network run -p 50000 -k /network/network-key"
+[[services]]
+name = "network"
+docker_image = "citacloud/network_direct"
+cmd = "network run -p 50000"
 #[[services]]
 #name = "consensus"
 #docker_image = "citacloud/consensus_raft"
