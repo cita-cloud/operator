@@ -81,6 +81,12 @@ def parse_arguments():
     parser.add_argument(
         '--state_db_password', default='citacloud', help='Password of state db.')
 
+    parser.add_argument(
+        '--docker_registry', help='Registry of docker images.')
+
+    parser.add_argument(
+        '--docker_image_namespace', help='Namespace of docker images.')
+
     args = parser.parse_args()
     return args
 
@@ -255,11 +261,18 @@ def gen_executor_service(i, chain_name, node_port, is_chaincode_executor):
     return executor_service
 
 
-def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, state_db_password, is_need_monitor, kms_secret_name, is_need_debug):
+def custom_docker_image(default_docker_image, docker_registry, docker_image_namespace):
+    if all([docker_registry, docker_image_namespace]):
+        return '{}:{}/{}'.format(docker_registry, docker_image_namespace, default_docker_image.split('/')[-1])
+    else:
+        return default_docker_image
+
+
+def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, state_db_password, is_need_monitor, kms_secret_name, is_need_debug, docker_registry, docker_image_namespace):
     containers = []
     if is_need_debug:
         debug_container = {
-            'image': DEBUG_DOCKER_IMAGE,
+            'image': custom_docker_image(DEBUG_DOCKER_IMAGE, docker_registry, docker_image_namespace),
             'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
             'name': 'debug',
             'ports': [
@@ -285,7 +298,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
         }
         containers.append(debug_container)
     syncthing_container = {
-        'image': SYNCTHING_DOCKER_IMAGE,
+        'image': custom_docker_image(SYNCTHING_DOCKER_IMAGE, docker_registry, docker_image_namespace),
         'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
         'name': 'syncthing',
         'ports': [
@@ -322,7 +335,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
     for service in service_config['services']:
         if service['name'] == 'network':
             network_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -359,7 +372,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             containers.append(network_container)
         elif service['name'] == 'consensus':
             consensus_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -386,7 +399,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             containers.append(consensus_container)
         elif service['name'] == 'executor':
             executor_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -428,7 +441,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 executor_container['ports'].append(eventhub_port)
                 if "chaincode_ext" in service['docker_image']:
                     state_db_container = {
-                        'image': "couchdb",
+                        'image': custom_docker_image('couchdb', docker_registry, docker_image_namespace),
                         'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                         'name': "couchdb",
                         'ports': [
@@ -467,7 +480,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             containers.append(executor_container)
         elif service['name'] == 'storage':
             storage_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -494,7 +507,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             containers.append(storage_container)
         elif service['name'] == 'controller':
             controller_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -521,7 +534,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             containers.append(controller_container)
         elif service['name'] == 'kms':
             kms_container = {
-                'image': service['docker_image'],
+                'image': custom_docker_image(service['docker_image'], docker_registry, docker_image_namespace),
                 'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                 'name': service['name'],
                 'ports': [
@@ -557,7 +570,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
 
     if is_need_monitor:
         monitor_process_container = {
-            'image': 'citacloud/monitor-process-exporter:0.4.1',
+            'image': custom_docker_image('citacloud/monitor-process-exporter:0.4.1', docker_registry, docker_image_namespace),
             'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
             'name': 'monitor-process',
             'ports': [
@@ -584,7 +597,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
         }
         containers.append(monitor_process_container)
         monitor_citacloud_container = {
-            'image': 'citacloud/monitor-citacloud-exporter:0.1.1',
+            'image': custom_docker_image('citacloud/monitor-citacloud-exporter:0.1.1', docker_registry, docker_image_namespace),
             'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
             'name': 'monitor-citacloud',
             'ports': [
@@ -821,7 +834,7 @@ def run_operator(args, work_dir):
         k8s_config.append(kms_secret)
         netwok_secret = gen_network_secret(args.chain_name, i)
         k8s_config.append(netwok_secret)
-        deployment = gen_node_deployment(i, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, i), args.need_debug)
+        deployment = gen_node_deployment(i, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, i), args.need_debug, args.docker_registry, args.docker_image_namespace)
         k8s_config.append(deployment)
         all_service = gen_all_service(i, args.chain_name, node_ports[i], lbs_tokens[i], args.need_monitor, args.need_debug, is_chaincode_executor)
         k8s_config.append(all_service)
