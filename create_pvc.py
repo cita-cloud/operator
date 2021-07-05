@@ -37,6 +37,19 @@ def parse_arguments():
     pnfs_pvc.add_argument(
         '--nfs_path', help='Path of nfs server.')
 
+    #
+    # Subcommand: nas_pvc
+    #
+
+    pnfs_pvc = subparsers.add_parser(
+        SUBCMD_NAS_PVC, help='Create pvc base on nas.')
+
+    pnfs_pvc.add_argument(
+        '--pvc_name', default='testchain-pvc', help='Name of pvc.')
+
+    pnfs_pvc.add_argument(
+        '--storage_class', default='nas-client-provisioner', help='StorageClass of pvc.')
+
     args = parser.parse_args()
     return args
 
@@ -171,12 +184,44 @@ def run_subcmd_nfs_pvc(args, work_dir):
     print("Done!!!")
 
 
+def run_subcmd_nas_pvc(args, work_dir):
+    k8s_config = []
+    nas_pvc = {
+        'kind': 'PersistentVolumeClaim',
+        'apiVersion': 'v1',
+        'metadata': {
+            'name': args.pvc_name,
+        },
+        'spec': {
+            'storageClassName': args.storage_class,
+            'accessModes': [
+                'ReadWriteMany',
+            ],
+            'resources': {
+                'requests': {
+                    'storage': '10Gi',
+                },
+            },
+        },
+    }
+    k8s_config.append(nas_pvc)
+
+    # write k8s_config to yaml file
+    yaml_ptah = os.path.join(work_dir, 'nas-pvc.yaml')
+    print("yaml_ptah:{}", yaml_ptah)
+    with open(yaml_ptah, 'wt') as stream:
+        yaml.dump_all(k8s_config, stream, sort_keys=False)
+
+    print("Done!!!")
+
+
 def main():
     args = parse_arguments()
     print("args:", args)
     funcs_router = {
         SUBCMD_LOCAL_PVC: run_subcmd_local_pvc,
         SUBCMD_NFS_PVC: run_subcmd_nfs_pvc,
+        SUBCMD_NAS_PVC: run_subcmd_nas_pvc,
     }
     work_dir = os.path.abspath(os.curdir)
     funcs_router[args.subcmd](args, work_dir)
@@ -185,4 +230,5 @@ def main():
 if __name__ == '__main__':
     SUBCMD_LOCAL_PVC = 'local_pvc'
     SUBCMD_NFS_PVC = 'nfs_pvc'
+    SUBCMD_NAS_PVC = 'nas_pvc'
     main()

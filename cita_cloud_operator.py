@@ -10,8 +10,6 @@ import base64
 import yaml
 
 
-SYNCTHING_DOCKER_IMAGE = 'syncthing/syncthing:latest'
-
 DEBUG_DOCKER_IMAGE = 'praqma/network-multitool'
 
 # IfNotPresent or Always
@@ -173,16 +171,6 @@ def gen_network_service(i, chain_name):
                     'targetPort': 40000,
                     'name': 'network',
                 },
-                {
-                    'port': 22000,
-                    'targetPort': 22000,
-                    'name': 'syncthing',
-                },
-                {
-                    'port': 8384,
-                    'targetPort': 8384,
-                    'name': 'gui',
-                }
             ],
             'selector': {
                 'node_name': get_node_pod_name(i, chain_name)
@@ -297,41 +285,6 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
             ],
         }
         containers.append(debug_container)
-    syncthing_container = {
-        'image': custom_docker_image(SYNCTHING_DOCKER_IMAGE, docker_registry, docker_image_namespace),
-        'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
-        'name': 'syncthing',
-        'ports': [
-                {
-                    'containerPort': 22000,
-                    'protocol': 'TCP',
-                    'name': 'sync',
-                },
-                {
-                    'containerPort': 8384,
-                    'protocol': 'TCP',
-                    'name': 'gui',
-                }
-        ],
-        'volumeMounts': [
-            {
-                'name': 'datadir',
-                'subPath': get_node_pod_name(i, chain_name),
-                'mountPath': '/var/syncthing',
-            }
-        ],
-        'env': [
-            {
-                'name': 'PUID',
-                'value': '0',
-            },
-            {
-                'name': 'PGID',
-                'value': '0',
-            },
-        ]
-    }
-    containers.append(syncthing_container)
     for service in service_config['services']:
         if service['name'] == 'network':
             network_container = {
@@ -711,10 +664,6 @@ def gen_peers_net_addr(nodes, node_ports):
     return list(map(lambda ip, port: {'ip': ip, 'port': port}, nodes, node_ports))
 
 
-def gen_sync_peers_mc(nodes, node_ports, sync_device_ids):
-    return list(map(lambda ip, port, device_id: {'ip': ip, 'port': port + 1, 'device_id': device_id}, nodes, node_ports, sync_device_ids))
-
-
 def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_debug, is_chaincode_executor):
     ports = [
         {
@@ -724,49 +673,44 @@ def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_de
         },
         {
             'port': node_port + 1,
-            'targetPort': 22000,
-            'name': 'sync',
-        },
-        {
-            'port': node_port + 2,
             'targetPort': 50004,
             'name': 'rpc',
         },
         {
-            'port': node_port + 3,
+            'port': node_port + 2,
             'targetPort': 50002,
             'name': 'call',
         },
     ]
     if is_need_monitor:
         process_port = {
-            'port': node_port + 4,
+            'port': node_port + 3,
             'targetPort': 9256,
             'name': 'process',
         }
         ports.append(process_port)
         exporter_port = {
-            'port': node_port + 5,
+            'port': node_port + 4,
             'targetPort': 9349,
             'name': 'exporter',
         }
         ports.append(exporter_port)
     if is_chaincode_executor:
         chaincode_port = {
-            'port': node_port + 6,
+            'port': node_port + 5,
             'targetPort': 7052,
             'name': 'chaincode',
         }
         ports.append(chaincode_port)
         eventhub_port = {
-            'port': node_port + 7,
+            'port': node_port + 6,
             'targetPort': 7053,
             'name': 'eventhub',
         }
         ports.append(eventhub_port)
     if is_need_debug:
         debug_port = {
-            'port': node_port + 8,
+            'port': node_port + 7,
             'targetPort': 9999,
             'name': 'debug',
         }
