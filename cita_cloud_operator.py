@@ -13,7 +13,7 @@ import yaml
 DEBUG_DOCKER_IMAGE = 'praqma/network-multitool'
 
 # IfNotPresent or Always
-DEFAULT_IMAGEPULLPOLICY = 'Always'
+DEFAULT_IMAGEPULLPOLICY = 'IfNotPresent'
 
 SERVICE_LIST = [
     'network',
@@ -394,7 +394,7 @@ def gen_node_deployment(i, service_config, chain_name, pvc_name, state_db_user, 
                 executor_container['ports'].append(eventhub_port)
                 if "chaincode_ext" in service['docker_image']:
                     state_db_container = {
-                        'image': custom_docker_image('couchdb', docker_registry, docker_image_namespace),
+                        'image': custom_docker_image('couchdb:3.1.1', docker_registry, docker_image_namespace),
                         'imagePullPolicy': DEFAULT_IMAGEPULLPOLICY,
                         'name': "couchdb",
                         'ports': [
