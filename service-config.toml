@@ -16,11 +16,11 @@ docker_image = "citacloud/consensus_bft:v6.0.0"
 cmd = "consensus run -p 50001"
 [[services]]
 name = "executor"
-docker_image = "citacloud/executor_evm:v6.0.0"
+docker_image = "citacloud/executor_evm:v6.1.0"
 cmd = "executor run -p 50002"
 [[services]]
 name = "storage"
-docker_image = "citacloud/storage_rocksdb:v6.0.0"
+docker_image = "citacloud/storage_rocksdb:v6.1.0"
 cmd = "storage run -p 50003"
 #[[services]]
 #name = "storage"
@@ -28,7 +28,7 @@ cmd = "storage run -p 50003"
 #cmd = "storage run -p 50003"
 [[services]]
 name = "controller"
-docker_image = "citacloud/controller:v6.0.0"
+docker_image = "citacloud/controller:v6.1.0"
 cmd = "controller run -p 50004"
 [[services]]
 name = "kms"
