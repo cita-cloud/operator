@@ -672,45 +672,45 @@ def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_de
             'name': 'network',
         },
         {
-            'port': node_port + 1,
+            'port': node_port + 2,
             'targetPort': 50004,
             'name': 'rpc',
         },
         {
-            'port': node_port + 2,
+            'port': node_port + 3,
             'targetPort': 50002,
             'name': 'call',
         },
     ]
     if is_need_monitor:
         process_port = {
-            'port': node_port + 3,
+            'port': node_port + 4,
             'targetPort': 9256,
             'name': 'process',
         }
         ports.append(process_port)
         exporter_port = {
-            'port': node_port + 4,
+            'port': node_port + 5,
             'targetPort': 9349,
             'name': 'exporter',
         }
         ports.append(exporter_port)
     if is_chaincode_executor:
         chaincode_port = {
-            'port': node_port + 5,
+            'port': node_port + 6,
             'targetPort': 7052,
             'name': 'chaincode',
         }
         ports.append(chaincode_port)
         eventhub_port = {
-            'port': node_port + 6,
+            'port': node_port + 7,
             'targetPort': 7053,
             'name': 'eventhub',
         }
         ports.append(eventhub_port)
     if is_need_debug:
         debug_port = {
-            'port': node_port + 7,
+            'port': node_port + 1,
             'targetPort': 9999,
             'name': 'debug',
         }
