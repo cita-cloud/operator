@@ -15,11 +15,11 @@ pip install -r requirements.txt
 ### 用法
 
 ```
-$ ./cita_cloud_operator.py -h
 usage: cita_cloud_operator.py [-h] [--work_dir WORK_DIR] [--chain_name CHAIN_NAME] [--service_config SERVICE_CONFIG]
-                              [--kms_passwords KMS_PASSWORDS] [--lbs_tokens LBS_TOKENS] [--node_ports NODE_PORTS]
-                              [--pvc_names PVC_NAMES] [--need_debug NEED_DEBUG] [--need_monitor NEED_MONITOR]
-                              [--state_db_user STATE_DB_USER] [--state_db_password STATE_DB_PASSWORD]
+                              [--kms_passwords KMS_PASSWORDS] [--lbs_tokens LBS_TOKENS] [--node_ports NODE_PORTS] [--pvc_names PVC_NAMES]
+                              [--need_debug NEED_DEBUG] [--need_monitor NEED_MONITOR] [--state_db_user STATE_DB_USER]
+                              [--state_db_password STATE_DB_PASSWORD] [--image_pull_policy IMAGE_PULL_POLICY] [--docker_registry DOCKER_REGISTRY]
+                              [--docker_image_namespace DOCKER_IMAGE_NAMESPACE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -44,6 +44,12 @@ optional arguments:
                         User of state db.
   --state_db_password STATE_DB_PASSWORD
                         Password of state db.
+  --image_pull_policy IMAGE_PULL_POLICY
+                        image pull policy, can be IfNotPresent or Always
+  --docker_registry DOCKER_REGISTRY
+                        Registry of docker images.
+  --docker_image_namespace DOCKER_IMAGE_NAMESPACE
+                        Namespace of docker images.
 ```
 
 ### 例子
