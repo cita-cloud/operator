@@ -8,7 +8,7 @@ docker_image = "citacloud/network_direct:v6.0.0"
 cmd = "network run -p 50000"
 #[[services]]
 #name = "consensus"
-#docker_image = "citacloud/consensus_raft:v6.0.0"
+#docker_image = "citacloud/consensus_raft:v6.2.0"
 #cmd = "consensus run -p 50001"
 [[services]]
 name = "consensus"
@@ -28,7 +28,7 @@ cmd = "storage run -p 50003"
 #cmd = "storage run -p 50003"
 [[services]]
 name = "controller"
-docker_image = "citacloud/controller:v6.1.0"
+docker_image = "citacloud/controller:v6.2.0"
 cmd = "controller run -p 50004"
 [[services]]
 name = "kms"
