@@ -87,6 +87,9 @@ def parse_arguments():
     parser.add_argument(
         '--docker_image_namespace', help='Namespace of docker images.')
 
+    parser.add_argument(
+        '--node_addresses', help='use node address name mode instead of serial number.')
+
     args = parser.parse_args()
     return args
 
@@ -746,6 +749,7 @@ def gen_kms_secret_name_mc(chain_name, i):
 
 def run_operator(args, work_dir):
     # load service_config
+    node_addresses = ""
     service_config = load_service_config(args.service_config)
     print("service_config:", service_config)
 
@@ -756,6 +760,8 @@ def run_operator(args, work_dir):
     kms_passwords = args.kms_passwords.split(',')
     node_ports = list(map(lambda x : int(x), args.node_ports.split(',')))
     pvc_names = args.pvc_names.split(',')
+    if args.node_addresses:
+        node_addresses = args.node_addresses.split(',')
 
     peers_count = len(kms_passwords)
     if len(lbs_tokens) != peers_count:
@@ -770,23 +776,32 @@ def run_operator(args, work_dir):
         print('The len of pvc_names is invalid')
         sys.exit(1)
 
+    if len(node_addresses) != 0 and len(node_addresses) != peers_count:
+        print('The len of node_addresses is invalid')
+        sys.exit(1)
+
     # is chaincode executor
     executor_docker_image = find_docker_image(service_config, "executor")
     is_chaincode_executor = "chaincode" in executor_docker_image
 
     # generate k8s yaml
     for i in range(peers_count):
+        node_part_name = i
+        if len(node_addresses) != 0:
+            node_part_name = node_addresses[i]
+            if node_part_name.startswith('0x') or node_part_name.startswith('0X'):
+                node_part_name = node_part_name[2:]
         k8s_config = []
         kms_secret = gen_kms_secret(kms_passwords[i], gen_kms_secret_name_mc(args.chain_name, i))
         k8s_config.append(kms_secret)
         netwok_secret = gen_network_secret(args.chain_name, i)
         k8s_config.append(netwok_secret)
-        deployment = gen_node_deployment(i, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, i), args.need_debug, args.docker_registry, args.docker_image_namespace, args.image_pull_policy)
+        deployment = gen_node_deployment(node_part_name, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, i), args.need_debug, args.docker_registry, args.docker_image_namespace, args.image_pull_policy)
         k8s_config.append(deployment)
-        all_service = gen_all_service(i, args.chain_name, node_ports[i], lbs_tokens[i], args.need_monitor, args.need_debug, is_chaincode_executor)
+        all_service = gen_all_service(node_part_name, args.chain_name, node_ports[i], lbs_tokens[i], args.need_monitor, args.need_debug, is_chaincode_executor)
         k8s_config.append(all_service)
         # write k8s_config to yaml file
-        yaml_ptah = os.path.join(work_dir, '{}-{}.yaml'.format(args.chain_name, i))
+        yaml_ptah = os.path.join(work_dir, '{}-{}.yaml'.format(args.chain_name, node_part_name))
         print("yaml_ptah:{}", yaml_ptah)
         with open(yaml_ptah, 'wt') as stream:
             yaml.dump_all(k8s_config, stream, sort_keys=False)
