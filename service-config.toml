@@ -1,36 +1,32 @@
 #[[services]]
 #name = "network"
-#docker_image = "citacloud/network_p2p:v6.0.0"
-#cmd = "network run -p 50000 -k /network/network-key"
+#docker_image = "citacloud/network_p2p:v6.3.0"
+#cmd = "network run"
 [[services]]
 name = "network"
-docker_image = "citacloud/network_direct:v6.0.0"
-cmd = "network run -p 50000"
-#[[services]]
-#name = "consensus"
-#docker_image = "citacloud/consensus_raft:v6.2.0"
-#cmd = "consensus run -p 50001"
+docker_image = "citacloud/network_tls:v6.3.0"
+cmd = "network run"
 [[services]]
 name = "consensus"
-docker_image = "citacloud/consensus_bft:v6.0.0"
-cmd = "consensus run -p 50001"
+docker_image = "citacloud/consensus_raft:v6.3.0"
+cmd = "consensus run"
+#[[services]]
+#name = "consensus"
+#docker_image = "citacloud/consensus_bft:v6.3.0"
+#cmd = "consensus run"
 [[services]]
 name = "executor"
-docker_image = "citacloud/executor_evm:v6.1.0"
-cmd = "executor run -p 50002"
+docker_image = "citacloud/executor_evm:v6.3.0"
+cmd = "executor run"
 [[services]]
 name = "storage"
-docker_image = "citacloud/storage_rocksdb:v6.1.0"
-cmd = "storage run -p 50003"
-#[[services]]
-#name = "storage"
-#docker_image = "citacloud/storage_sqlite:v5.0.0"
-#cmd = "storage run -p 50003"
+docker_image = "citacloud/storage_rocksdb:v6.3.0"
+cmd = "storage run"
 [[services]]
 name = "controller"
-docker_image = "citacloud/controller:v6.2.0"
-cmd = "controller run -p 50004"
+docker_image = "citacloud/controller:v6.3.0"
+cmd = "controller run"
 [[services]]
 name = "kms"
-docker_image = "citacloud/kms_sm:v6.0.0"
-cmd = "kms run -p 50005 -k /kms/key_file"
+docker_image = "citacloud/kms_sm:v6.3.0"
+cmd = "kms run"
