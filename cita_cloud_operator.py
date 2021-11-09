@@ -90,6 +90,9 @@ def parse_arguments():
     parser.add_argument(
         '--node_addresses', help='use node address name mode instead of serial number.')
 
+    parser.add_argument(
+        '--indices', help='specify service name.')
+
     args = parser.parse_args()
     return args
 
@@ -670,7 +673,7 @@ def gen_peers_net_addr(nodes, node_ports):
     return list(map(lambda ip, port: {'ip': ip, 'port': port}, nodes, node_ports))
 
 
-def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_debug, is_chaincode_executor):
+def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_debug, is_chaincode_executor, index):
     ports = [
         {
             'port': 40000,
@@ -733,7 +736,7 @@ def gen_all_service(i, chain_name, node_port, token, is_need_monitor, is_need_de
         'apiVersion': 'v1',
         'kind': 'Service',
         'metadata': {
-            'name': 'all-{}-{}'.format(chain_name, i)
+            'name': 'all-{}-{}'.format(chain_name, index)
         },
         'spec': {
             'type': 'NodePort',
@@ -753,6 +756,7 @@ def gen_kms_secret_name_mc(chain_name, i):
 def run_operator(args, work_dir):
     # load service_config
     node_addresses = ""
+    indices = ""
     service_config = load_service_config(args.service_config)
     print("service_config:", service_config)
 
@@ -765,6 +769,9 @@ def run_operator(args, work_dir):
     pvc_names = args.pvc_names.split(',')
     if args.node_addresses:
         node_addresses = args.node_addresses.split(',')
+
+    if args.indices:
+        indices = args.indices.split(',')
 
     peers_count = len(kms_passwords)
     if len(lbs_tokens) != peers_count:
@@ -783,6 +790,10 @@ def run_operator(args, work_dir):
         print('The len of node_addresses is invalid')
         sys.exit(1)
 
+    if len(indices) != 0 and len(indices) != peers_count:
+        print('The len of indices is invalid')
+        sys.exit(1)
+
     # is chaincode executor
     executor_docker_image = find_docker_image(service_config, "executor")
     is_chaincode_executor = "chaincode" in executor_docker_image
@@ -790,18 +801,21 @@ def run_operator(args, work_dir):
     # generate k8s yaml
     for i in range(peers_count):
         node_part_name = i
+        node_index = 1
         if len(node_addresses) != 0:
             node_part_name = node_addresses[i]
             if node_part_name.startswith('0x') or node_part_name.startswith('0X'):
                 node_part_name = node_part_name[2:]
+        if len(indices) != 0:
+            node_index = indices[i]
         k8s_config = []
-        kms_secret = gen_kms_secret(kms_passwords[i], gen_kms_secret_name_mc(args.chain_name, i))
+        kms_secret = gen_kms_secret(kms_passwords[i], gen_kms_secret_name_mc(args.chain_name, node_part_name))
         k8s_config.append(kms_secret)
-        netwok_secret = gen_network_secret(args.chain_name, i)
+        netwok_secret = gen_network_secret(args.chain_name, node_part_name)
         k8s_config.append(netwok_secret)
-        deployment = gen_node_deployment(node_part_name, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, i), args.need_debug, args.docker_registry, args.docker_image_namespace, args.image_pull_policy)
+        deployment = gen_node_deployment(node_part_name, service_config, args.chain_name, pvc_names[i], args.state_db_user, args.state_db_password, args.need_monitor, gen_kms_secret_name_mc(args.chain_name, node_part_name), args.need_debug, args.docker_registry, args.docker_image_namespace, args.image_pull_policy)
         k8s_config.append(deployment)
-        all_service = gen_all_service(node_part_name, args.chain_name, node_ports[i], lbs_tokens[i], args.need_monitor, args.need_debug, is_chaincode_executor)
+        all_service = gen_all_service(node_part_name, args.chain_name, node_ports[i], lbs_tokens[i], args.need_monitor, args.need_debug, is_chaincode_executor, node_index)
         k8s_config.append(all_service)
         # write k8s_config to yaml file
         yaml_ptah = os.path.join(work_dir, '{}-{}.yaml'.format(args.chain_name, node_part_name))
