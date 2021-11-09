@@ -15,11 +15,13 @@ pip install -r requirements.txt
 ### 用法
 
 ```
+$ ./cita_cloud_operator.py --help
 usage: cita_cloud_operator.py [-h] [--work_dir WORK_DIR] [--chain_name CHAIN_NAME] [--service_config SERVICE_CONFIG]
                               [--kms_passwords KMS_PASSWORDS] [--lbs_tokens LBS_TOKENS] [--node_ports NODE_PORTS] [--pvc_names PVC_NAMES]
                               [--need_debug NEED_DEBUG] [--need_monitor NEED_MONITOR] [--state_db_user STATE_DB_USER]
-                              [--state_db_password STATE_DB_PASSWORD] [--image_pull_policy IMAGE_PULL_POLICY] [--docker_registry DOCKER_REGISTRY]
-                              [--docker_image_namespace DOCKER_IMAGE_NAMESPACE]
+                              [--state_db_password STATE_DB_PASSWORD] [--image_pull_policy IMAGE_PULL_POLICY]
+                              [--docker_registry DOCKER_REGISTRY] [--docker_image_namespace DOCKER_IMAGE_NAMESPACE]
+                              [--node_addresses NODE_ADDRESSES]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -50,6 +52,8 @@ optional arguments:
                         Registry of docker images.
   --docker_image_namespace DOCKER_IMAGE_NAMESPACE
                         Namespace of docker images.
+  --node_addresses NODE_ADDRESSES
+                        use node address name mode instead of serial number.
 ```
 
 ### 例子
@@ -69,3 +73,4 @@ Done!!!
 
 1. `kms_passwords`,`lbs_tokens`,`node_ports`,`pvc_names` 四个参数的值均为数组，以逗号分割。值的数量都跟链的节点数保持一致，且按照节点序号排列，顺序不能乱。
 2. `kms_passwords`参数要和创建节点配置文件时的参数保持一致。
+3. 配置`node_addresses`节点的用户名将会变成`<chain name>-<node address>`
