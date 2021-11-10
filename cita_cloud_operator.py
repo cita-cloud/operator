@@ -801,7 +801,7 @@ def run_operator(args, work_dir):
     # generate k8s yaml
     for i in range(peers_count):
         node_part_name = i
-        node_index = 1
+        node_index = i
         if len(node_addresses) != 0:
             node_part_name = node_addresses[i]
             if node_part_name.startswith('0x') or node_part_name.startswith('0X'):
