@@ -54,6 +54,7 @@ optional arguments:
                         Namespace of docker images.
   --node_addresses NODE_ADDRESSES
                         use node address name mode instead of serial number.
+  --indices INDICES     specify service name.
 ```
 
 ### 例子
